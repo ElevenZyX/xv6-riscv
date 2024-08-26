@@ -2,7 +2,7 @@
 
 
 
-Primero que todo, mi PC es un MacBook, el cual tiene instalado Windows 10 mediante BootCamp. Sin embargo, no tengo activada la virtualización, por lo que no puedo instalar Ubuntu mediante WSL. Por lo tanto, instalé VirtualBox y descargué Ubuntu 26.04 para instalarlo en VirtualBox.
+Primero que todo, mi PC es un MacBook, el cual tiene instalado Windows 10 mediante BootCamp. Sin embargo, no tengo activada la virtualización, por lo que no puedo instalar Ubuntu mediante WSL. Por lo tanto, instalé VirtualBox y descargué Ubuntu 24.04 para instalarlo en VirtualBox.
 
 Al instalarlo, seguí los pasos de un tutorial en YouTube, y la instalación fue exitosa. Posteriormente, hice un fork del repositorio del profesor y cloné mi repositorio en Ubuntu. Luego, creé una rama llamada Diego_Troncoso_t0 y le hice push. El terminal me solicitó mi usuario y contraseña de GitHub, por lo que tuve que crear un token de identificación en GitHub para iniciar sesión en la terminal. Después de esto, comencé con la instalación de xv6.
 
@@ -26,7 +26,7 @@ Después de ejecutar estos tres comandos, ejecuté `make qemu` y me dio error, p
 sudo apt-get install gcc
 ```
 
-Volví a ejecutar `make qemu`, pero el error persistió (no tenía instalado `make qemu`). Entonces utilicé el siguiente comando:
+Volví a ejecutar `make qemu`, pero el error persistió (no tenía instalado `qemu`). Entonces utilicé el siguiente comando:
 ```
 sudo apt-get install qemu qemu-system-misc
 ```
