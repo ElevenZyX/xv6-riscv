@@ -91,3 +91,31 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int
+sys_getppid(void)
+{
+  struct proc *p = myproc();
+  if (p->parent)
+      return p->parent->pid;
+  return -1;  // En caso de que no haya un proceso padre
+}
+
+int
+sys_getancestor(void)
+{
+    int n;
+    struct proc *p = myproc();
+
+    // Corregir la llamada a argint
+    argint(0, &n);
+
+    for(int i = 0; i < n; i++) {
+        if(p->parent != 0)
+            p = p->parent;
+        else
+            return -1;
+    }
+
+    return p->pid;
+}
