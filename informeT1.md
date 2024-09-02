@@ -137,7 +137,8 @@ Este código cumple con lo solicitado en la tarea 1, retornando el ID del padre 
 Se añadió la siguiente línea para compilar el programa `yosoytupadre.c`:
 
 ```makefile
-$U/_yosoytupadre```
+$U/_yosoytupadre
+```
 
 ### Ejemplos de ejecución:
 
