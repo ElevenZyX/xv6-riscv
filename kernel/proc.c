@@ -125,6 +125,11 @@ found:
   p->pid = allocpid();
   p->state = USED;
 
+  // Inicializar el tiempo de llegada
+  acquire(&tickslock);
+  p->arrivaltime = ticks;
+  release(&tickslock);
+
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
@@ -148,6 +153,7 @@ found:
 
   return p;
 }
+
 
 // free a proc structure and the data hanging from it,
 // including user pages.
@@ -441,44 +447,58 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+
+
+struct proc* get_older_process(void)
+{
+    struct proc *p;
+    struct proc *oldest = 0;
+
+    for(p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if(p->state == RUNNABLE) {
+            if (oldest == 0 || p->arrivaltime < oldest->arrivaltime) {
+                if (oldest != 0) {
+                    release(&oldest->lock); // Liberar el lock del proceso anterior
+                }
+                oldest = p;
+            } else {
+                release(&p->lock); // Liberar el lock si no es el más antiguo
+            }
+        } else {
+            release(&p->lock); // Liberar el lock si el proceso no está en estado RUNNABLE
+        }
+    }
+
+    return oldest;
+}
+
 void
 scheduler(void)
 {
-  struct proc *p;
-  struct cpu *c = mycpu();
+    struct proc *p;
+    struct cpu *c = mycpu();
 
-  c->proc = 0;
-  for(;;){
-    // The most recent process to run may have had interrupts
-    // turned off; enable them to avoid a deadlock if all
-    // processes are waiting.
-    intr_on();
+    c->proc = 0;
+    for(;;){
+        intr_on();
 
-    int found = 0;
-    for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
+        p = get_older_process();
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
-      }
-      release(&p->lock);
+        if (p != 0) {
+            p->state = RUNNING;
+            c->proc = p;
+            swtch(&c->context, &p->context);
+
+            c->proc = 0;
+            release(&p->lock);
+        } else {
+            intr_on();
+            asm volatile("wfi");
+        }
     }
-    if(found == 0) {
-      // nothing to run; stop running on this core until an interrupt.
-      intr_on();
-      asm volatile("wfi");
-    }
-  }
 }
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
