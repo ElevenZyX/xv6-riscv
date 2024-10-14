@@ -1,6 +1,6 @@
-### `README.md`
 
-```markdown
+
+
 # Informe Tarea 2
 
 **Autor**: Diego Troncoso Bustamante
