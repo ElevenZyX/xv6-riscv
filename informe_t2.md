@@ -125,6 +125,10 @@ UPROGS=\
   ...
 ```
 
+Claro, aquí tienes una versión breve:
+
+---
+
 Además, se agregó una regla en el `Makefile` para compilar y generar los archivos necesarios:
 
 ```makefile
@@ -133,6 +137,8 @@ $U/_test_prioridad: $U/test_prioridad.o $(ULIB)
 	$(OBJDUMP) -S $U/_test_prioridad > $U/test_prioridad.asm
 	$(OBJDUMP) -t $U/_test_prioridad | sed '1/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $U/test_prioridad.sym
 ```
+
+Esta regla vincula el archivo objeto `test_prioridad.o` con las librerías necesarias (`$(ULIB)`), genera el ejecutable `test_prioridad`, y produce los archivos de ensamblado (`test_prioridad.asm`) y de símbolos (`test_prioridad.sym`) para facilitar la depuración.
 
 Finalmente, por recomendación del profesor, se cambió el número de CPUs de 3 a 1 en el `Makefile`:
 
@@ -145,7 +151,8 @@ CPUS := 3  -->  CPUS := 1
 La versión final del `scheduler` incluye la lógica completa para manejar la prioridad y el boost de cada proceso:
 
 ```c
-void scheduler(void)
+void 
+scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();  // Obtener la CPU actual
