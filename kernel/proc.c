@@ -451,10 +451,10 @@ scheduler(void)
   c->proc = 0;
 
   for(;;){
-    // Enable interrupts on this processor.
+    // Habilitar interrupciones en este procesador
     intr_on();
 
-    // Loop sobre la tabla de procesos.
+    // Iterar sobre la tabla de procesos
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
       if(p->state != RUNNABLE) {
@@ -462,21 +462,30 @@ scheduler(void)
         continue;
       }
 
-      // Switch to chosen process. It is the process's job
-      // to release p->lock and then reacquire it
-      // before jumping back to us.
+      // Incrementar la prioridad con el boost
+      p->priority += p->boost;
+
+      // Verificar los límites de prioridad y ajustar el boost
+      if(p->priority >= 9) {
+        p->priority = 9;
+        p->boost = -1;
+      } else if(p->priority <= 0) {
+        p->priority = 0;
+        p->boost = 1;
+      }
+
+      // Cambiar a este proceso
       p->state = RUNNING;
       c->proc = p;
       swtch(&c->context, &p->context);
 
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
+      // Proceso ha terminado de correr por ahora
       c->proc = 0;
       release(&p->lock);
     }
   }
 }
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
