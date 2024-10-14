@@ -191,3 +191,40 @@ scheduler(void)
 
 > Este código implementa la lógica de prioridad y boost solicitada en la tarea. La prioridad de cada proceso se ajusta dinámicamente utilizando `boost`, y se limita entre 0 y 9.
 
+
+## Ejecución de código
+
+Al ejecutar por consola el archivo `test_prioridad.c`, se obtiene el siguiente resultado:
+
+```
+init: starting sh
+$ test_prioridad
+Ejecutando proceso 4
+Ejecutando proceso 5
+Ejecutando proceso 6
+Ejecutando proceso 7
+Ejecutando proceso 8
+Ejecutando proceso 9
+Ejecutando proceso 10
+Ejecutando proceso 11
+Ejecutando proceso 12
+Ejecutando proceso 13
+Ejecutando proceso 14
+Ejecutando proceso 15
+Ejecutando proceso 16
+Ejecutando proceso 17
+Ejecutando proceso 18
+Ejecutando proceso 19
+Ejecutando proceso 20
+Ejecutando proceso 21
+Ejecutando proceso 22
+Ejecutando proceso 23
+Todos los procesos han terminado.
+```
+
+Este resultado confirma la ejecución exitosa del programa de prueba solicitado en la tarea.
+
+## Conclusiones
+
+En esta tarea, aprendí que cometer errores durante el proceso de prueba y error es parte fundamental del aprendizaje. Me di cuenta de que la investigación sobre un sistema operativo sin verificar primero la versión puede ser un error crucial al implementar código, ya que diferentes versiones tienen cambios significativos que afectan su comportamiento y funcionalidad.
+
