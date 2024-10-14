@@ -125,10 +125,6 @@ UPROGS=\
   ...
 ```
 
-Claro, aquí tienes una versión breve:
-
----
-
 Además, se agregó una regla en el `Makefile` para compilar y generar los archivos necesarios:
 
 ```makefile
