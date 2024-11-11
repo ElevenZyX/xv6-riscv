@@ -25,3 +25,5 @@ Se añadieron las siguientes líneas para declarar las nuevas funciones y maneja
 
 int mprotect(void *addr, int len);
 int munprotect(void *addr, int len);
+```
+>Estas líneas declaran las funciones `mprotect` y `munprotect`, que serán responsables de manejar la protección de memoria para el proceso.
