@@ -239,6 +239,4 @@ Prueba completada.
 
 ## Conclusión
 
-En esta tarea, se implementaron las funciones de protección de memoria `mprotect` y `munprotect`, lo cual permitió aprender sobre la manipulación de permisos en la tabla de páginas
-
- de xv6. Aunque se presentaron errores iniciales, se solucionaron correctamente mediante modificaciones en archivos clave del kernel. Esta experiencia permitió fortalecer los conocimientos en gestión de memoria y control de permisos en un sistema operativo.
+En esta tarea, se implementaron las funciones de protección de memoria `mprotect` y `munprotect`, lo cual permitió aprender sobre la manipulación de permisos en la tabla de páginas de xv6. Aunque se presentaron errores iniciales, se solucionaron correctamente mediante modificaciones en archivos clave del kernel. Esta experiencia permitió fortalecer los conocimientos en gestión de memoria y control de permisos en un sistema operativo.
