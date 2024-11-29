@@ -99,7 +99,6 @@ sys_uptime(void)
 }
 
 
-
 uint64
 sys_chmod(void)
 {
@@ -108,12 +107,14 @@ sys_chmod(void)
     struct inode *ip;
 
     // Obtener argumentos
-    argstr(0, path, MAXPATH);
-    argint(1, &mode);
+    if (argstr(0, path, MAXPATH) < 0) {
+        return -1; // Error al obtener el primer argumento
+    }
+    if (argint(1, &mode) < 0) {
+        return -1; // Error al obtener el segundo argumento
+    }
 
     begin_op();
-
-    // Buscar el inode del archivo
     if ((ip = namei(path)) == 0) {
         end_op();
         return -1; // Archivo no encontrado
@@ -121,12 +122,17 @@ sys_chmod(void)
 
     ilock(ip);
 
-    // Modificar los permisos del inode
-    ip->perm = mode & 3; // Máscara para asegurar valores válidos (0-3)
-    iupdate(ip);
+    // Verificar si el archivo es inmutable
+    if (ip->perm == 5) {
+        iunlockput(ip);
+        end_op();
+        return -1; // No se pueden cambiar los permisos de un archivo inmutable
+    }
 
+    ip->perm = mode & 7; // Máscara para asegurar valores válidos (0-7)
+    iupdate(ip);         // Guardar los cambios en el disco
     iunlockput(ip);
     end_op();
 
-    return 0; // Operación exitosa
+    return 0; // Éxito
 }

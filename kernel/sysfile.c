@@ -100,15 +100,14 @@ sys_write(void)
     if (argfd(0, 0, &f) < 0)
         return -1;
 
-    // Verificar permisos de escritura
-    if (f->ip && (f->ip->perm & 2) == 0) {
-        return -1; // No tiene permiso de escritura
+    // Verificar permisos de escritura o si el archivo es inmutable
+    if (f->ip && (f->ip->perm == 5 || (f->ip->perm & 2) == 0)) {
+        return -1; // Bloquear escritura para archivos inmutables o sin permisos de escritura
     }
 
     // Llamar a la función filewrite
     return filewrite(f, p, n);
 }
-
 
 
 uint64
@@ -327,32 +326,44 @@ sys_open(void)
     struct inode *ip;
     int n;
 
-    argint(1, &omode);
+    // Leer los argumentos de la llamada al sistema
+    argint(1, &omode); // Modo de apertura
     if ((n = argstr(0, path, MAXPATH)) < 0)
         return -1;
 
     begin_op();
 
+    // Crear el archivo si se pasa el flag O_CREATE
     if (omode & O_CREATE) {
         ip = create(path, T_FILE, 0, 0);
         if (ip == 0) {
             end_op();
-            return -1;
+            return -1; // Error al crear el archivo
         }
     } else {
+        // Buscar el archivo por su ruta
         if ((ip = namei(path)) == 0) {
             end_op();
-            return -1;
+            return -1; // Archivo no encontrado
         }
         ilock(ip);
+
+        // No se permite abrir directorios en modo distinto de lectura
         if (ip->type == T_DIR && omode != O_RDONLY) {
             iunlockput(ip);
             end_op();
-            return -1;
+            return -1; // Operación no permitida
         }
     }
 
-    // Verificar permisos de lectura/escritura
+    // Verificar permisos especiales: inmutable (5)
+    if (ip->perm == 5 && (omode & (O_WRONLY | O_RDWR))) {
+        end_op();
+        iunlockput(ip);
+        return -1; // No se puede abrir en modo escritura si es inmutable
+    }
+
+    // Verificar permisos de lectura y escritura
     if ((ip->perm & 1) == 0 && (omode & O_RDONLY)) {
         end_op();
         iunlockput(ip);
@@ -364,20 +375,23 @@ sys_open(void)
         return -1; // No tiene permiso de escritura
     }
 
+    // Verificar que los dispositivos sean válidos
     if (ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)) {
         iunlockput(ip);
         end_op();
-        return -1;
+        return -1; // Dispositivo no válido
     }
 
+    // Asignar un archivo y descriptor de archivo
     if ((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0) {
         if (f)
             fileclose(f);
         iunlockput(ip);
         end_op();
-        return -1;
+        return -1; // Error al asignar el archivo
     }
 
+    // Configurar el archivo dependiendo de su tipo
     if (ip->type == T_DEVICE) {
         f->type = FD_DEVICE;
         f->major = ip->major;
@@ -386,17 +400,19 @@ sys_open(void)
         f->off = 0;
     }
     f->ip = ip;
-    f->readable = !(omode & O_WRONLY);
-    f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+    f->readable = !(omode & O_WRONLY); // Configurar como legible si no es solo escritura
+    f->writable = (omode & O_WRONLY) || (omode & O_RDWR); // Configurar como escribible
 
+    // Truncar el archivo si el flag O_TRUNC está activo
     if ((omode & O_TRUNC) && ip->type == T_FILE) {
         itrunc(ip);
     }
 
+    // Liberar el inodo y finalizar la operación
     iunlock(ip);
     end_op();
 
-    return fd;
+    return fd; // Retornar el descriptor de archivo
 }
 
 

@@ -53,10 +53,14 @@ argraw(int n)
 }
 
 // Fetch the nth 32-bit system call argument.
-void
+int
 argint(int n, int *ip)
 {
-  *ip = argraw(n);
+    if (n < 0 || n >= 3) // Validar que el índice del argumento sea válido
+        return -1;
+
+    *ip = argraw(n);
+    return 0; // Éxito
 }
 
 // Retrieve an argument as a pointer.
