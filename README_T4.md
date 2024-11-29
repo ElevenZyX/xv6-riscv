@@ -270,8 +270,6 @@ Permisos restaurados.
 
 **Conclusión:** La implementación de permisos y la syscall `chmod` funcionan correctamente para la primera parte, ahora, veremos la segunda parte de la tarea.
 
-Aquí tienes el contenido del archivo procesado en formato **Markdown** con las explicaciones incluidas y errores corregidos:
-
 ---
 
 # Segunda Parte
