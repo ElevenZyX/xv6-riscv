@@ -82,6 +82,8 @@ Se añadió protección contra múltiples inclusiones:
 
 ## **Implementación de la Tarea**
 
+Despues de todo ese paso previo que fue gracias a los erorres arrojados por consola al momento de implementar la solución, estos son los archivos principales para que la primera parte resultada satisfecha al 100%
+
 ### **1. Modificaciones a la estructura `inode`**
 En **`file.h`**, se añadió el campo `perm` para almacenar los permisos:
 ```c
