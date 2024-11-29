@@ -499,7 +499,7 @@ $ cat testfile.txt
 Permisos restaurados.
 ```
 
-Obteniendo los resultados esperados para la segunda parte de la tarea
+Obteniendo los resultados esperados para la segunda parte de la tarea.
 
 
 
