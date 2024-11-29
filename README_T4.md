@@ -153,7 +153,7 @@ uint64 sys_chmod(void) {
     return 0; // Éxito
 }
 ```
-**Objetivo:** La syscall sys_chmod permite cambiar los permisos de un archivo en el sistema operativo xv6-riscv. Específicamente, actualiza los permisos almacenados en el inodo del archivo, lo que controla si el archivo puede ser leído, escrito o ambas cosas.
+**Objetivo:** La syscall **`sys_chmod`** permite cambiar los permisos de un archivo en `xv6-riscv`. Modifica el campo de permisos (`perm`) del inodo del archivo para controlar si puede ser leído, escrito o ambas cosas. 
 
 ---
 
