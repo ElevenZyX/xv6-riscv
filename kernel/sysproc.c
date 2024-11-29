@@ -3,8 +3,14 @@
 #include "defs.h"
 #include "param.h"
 #include "memlayout.h"
-#include "spinlock.h"
 #include "proc.h"
+#include "fs.h"
+#include "spinlock.h"
+#include "sleeplock.h"
+#include "file.h"
+
+
+
 
 uint64
 sys_exit(void)
@@ -90,4 +96,37 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+
+
+uint64
+sys_chmod(void)
+{
+    char path[MAXPATH];
+    int mode;
+    struct inode *ip;
+
+    // Obtener argumentos
+    argstr(0, path, MAXPATH);
+    argint(1, &mode);
+
+    begin_op();
+
+    // Buscar el inode del archivo
+    if ((ip = namei(path)) == 0) {
+        end_op();
+        return -1; // Archivo no encontrado
+    }
+
+    ilock(ip);
+
+    // Modificar los permisos del inode
+    ip->perm = mode & 3; // Máscara para asegurar valores válidos (0-3)
+    iupdate(ip);
+
+    iunlockput(ip);
+    end_op();
+
+    return 0; // Operación exitosa
 }

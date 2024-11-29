@@ -68,31 +68,48 @@ sys_dup(void)
 uint64
 sys_read(void)
 {
-  struct file *f;
-  int n;
-  uint64 p;
+    struct file *f;
+    int n;
+    uint64 p;
 
-  argaddr(1, &p);
-  argint(2, &n);
-  if(argfd(0, 0, &f) < 0)
-    return -1;
-  return fileread(f, p, n);
+    // Obtener los argumentos
+    argaddr(1, &p); // Dirección del buffer donde se almacenará lo leído
+    argint(2, &n);  // Número de bytes a leer
+    if (argfd(0, 0, &f) < 0)
+        return -1;
+
+    // Verificar permisos de lectura
+    if (f->ip && (f->ip->perm & 1) == 0) {
+        return -1; // No tiene permiso de lectura
+    }
+
+    // Llamar a la función fileread
+    return fileread(f, p, n);
 }
 
 uint64
 sys_write(void)
 {
-  struct file *f;
-  int n;
-  uint64 p;
-  
-  argaddr(1, &p);
-  argint(2, &n);
-  if(argfd(0, 0, &f) < 0)
-    return -1;
+    struct file *f;
+    int n;
+    uint64 p;
 
-  return filewrite(f, p, n);
+    // Obtener los argumentos
+    argaddr(1, &p);
+    argint(2, &n);
+    if (argfd(0, 0, &f) < 0)
+        return -1;
+
+    // Verificar permisos de escritura
+    if (f->ip && (f->ip->perm & 2) == 0) {
+        return -1; // No tiene permiso de escritura
+    }
+
+    // Llamar a la función filewrite
+    return filewrite(f, p, n);
 }
+
+
 
 uint64
 sys_close(void)
@@ -304,71 +321,87 @@ create(char *path, short type, short major, short minor)
 uint64
 sys_open(void)
 {
-  char path[MAXPATH];
-  int fd, omode;
-  struct file *f;
-  struct inode *ip;
-  int n;
+    char path[MAXPATH];
+    int fd, omode;
+    struct file *f;
+    struct inode *ip;
+    int n;
 
-  argint(1, &omode);
-  if((n = argstr(0, path, MAXPATH)) < 0)
-    return -1;
+    argint(1, &omode);
+    if ((n = argstr(0, path, MAXPATH)) < 0)
+        return -1;
 
-  begin_op();
+    begin_op();
 
-  if(omode & O_CREATE){
-    ip = create(path, T_FILE, 0, 0);
-    if(ip == 0){
-      end_op();
-      return -1;
+    if (omode & O_CREATE) {
+        ip = create(path, T_FILE, 0, 0);
+        if (ip == 0) {
+            end_op();
+            return -1;
+        }
+    } else {
+        if ((ip = namei(path)) == 0) {
+            end_op();
+            return -1;
+        }
+        ilock(ip);
+        if (ip->type == T_DIR && omode != O_RDONLY) {
+            iunlockput(ip);
+            end_op();
+            return -1;
+        }
     }
-  } else {
-    if((ip = namei(path)) == 0){
-      end_op();
-      return -1;
-    }
-    ilock(ip);
-    if(ip->type == T_DIR && omode != O_RDONLY){
-      iunlockput(ip);
-      end_op();
-      return -1;
-    }
-  }
 
-  if(ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)){
-    iunlockput(ip);
+    // Verificar permisos de lectura/escritura
+    if ((ip->perm & 1) == 0 && (omode & O_RDONLY)) {
+        end_op();
+        iunlockput(ip);
+        return -1; // No tiene permiso de lectura
+    }
+    if ((ip->perm & 2) == 0 && (omode & O_WRONLY)) {
+        end_op();
+        iunlockput(ip);
+        return -1; // No tiene permiso de escritura
+    }
+
+    if (ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)) {
+        iunlockput(ip);
+        end_op();
+        return -1;
+    }
+
+    if ((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0) {
+        if (f)
+            fileclose(f);
+        iunlockput(ip);
+        end_op();
+        return -1;
+    }
+
+    if (ip->type == T_DEVICE) {
+        f->type = FD_DEVICE;
+        f->major = ip->major;
+    } else {
+        f->type = FD_INODE;
+        f->off = 0;
+    }
+    f->ip = ip;
+    f->readable = !(omode & O_WRONLY);
+    f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+
+    if ((omode & O_TRUNC) && ip->type == T_FILE) {
+        itrunc(ip);
+    }
+
+    iunlock(ip);
     end_op();
-    return -1;
-  }
 
-  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
-    if(f)
-      fileclose(f);
-    iunlockput(ip);
-    end_op();
-    return -1;
-  }
-
-  if(ip->type == T_DEVICE){
-    f->type = FD_DEVICE;
-    f->major = ip->major;
-  } else {
-    f->type = FD_INODE;
-    f->off = 0;
-  }
-  f->ip = ip;
-  f->readable = !(omode & O_WRONLY);
-  f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
-
-  if((omode & O_TRUNC) && ip->type == T_FILE){
-    itrunc(ip);
-  }
-
-  iunlock(ip);
-  end_op();
-
-  return fd;
+    return fd;
 }
+
+
+
+
 
 uint64
 sys_mkdir(void)
